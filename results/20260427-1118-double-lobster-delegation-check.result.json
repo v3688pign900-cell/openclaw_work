@@ -1,5 +1,7 @@
 {
   "task_id": "task-20260427-1118-double-lobster-delegation-check",
+  "completed_by": "小蝦",
+  "executor_role": "RD",
   "status": "completed",
   "summary": "已完成 coding task：寫一個 bash script 檢查 18789 port 是否有 listen",
   "result": {
@@ -8,7 +10,7 @@
       "deliverables/check_port_18789.sh"
     ],
     "notes": [
-      "generated_at=2026-04-27T11:19:48.931977",
+      "generated_at=2026-04-27T11:25:10.792537",
       "target_file=deliverables/check_port_18789.sh",
       "script_type=port_listen_check",
       "target_port=18789",
