@@ -1,0 +1,35 @@
+{
+  "task_id": "task-20260427-1046-sop-test",
+  "from": "大蝦",
+  "to": "小蝦",
+  "role": "execution",
+  "task_type": "sop",
+  "title": "產出本地 RD watcher 啟動 SOP",
+  "goal": "產出一份簡潔可執行 SOP，讓使用者知道如何在 openclaw_work repo 啟動小蝦 watcher。",
+  "background": "需要驗證 sop executor 已可用。",
+  "inputs": {
+    "repo_path": "/Users/v3688pign900/.openclaw/workspace/openclaw_work",
+    "entrypoint": "./scripts/run_local_rd_watch.sh"
+  },
+  "constraints": [
+    "輸出要短",
+    "要能直接執行",
+    "不要講理論"
+  ],
+  "expected_output": {
+    "format": "json",
+    "sections": [
+      "summary",
+      "result",
+      "issues"
+    ]
+  },
+  "acceptance_criteria": [
+    "result status=completed",
+    "notes 內含 steps",
+    "可供大蝦整理成 Telegram 回覆"
+  ],
+  "priority": "medium",
+  "deadline_hint": "immediate",
+  "assumptions_allowed": true
+}
