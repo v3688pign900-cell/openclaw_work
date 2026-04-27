@@ -97,6 +97,63 @@ def build_sop_result(task, task_path: Path):
     }
 
 
+def build_debug_result(task, task_path: Path):
+    now = datetime.now().isoformat()
+    inputs = task.get("inputs", {})
+    constraints = task.get("constraints", [])
+    suspected_areas = []
+    if isinstance(inputs, dict):
+        suspected_areas = list(inputs.keys())
+    return {
+        "task_id": task["task_id"],
+        "status": "completed",
+        "summary": f"已完成 debug 初步分析：{task.get('title', task['task_id'])}",
+        "result": {
+            "artifacts": [
+                str(task_path.relative_to(ROOT))
+            ],
+            "notes": [
+                f"generated_at={now}",
+                f"suspected_areas={','.join(suspected_areas) if suspected_areas else 'n/a'}",
+                f"constraint_count={len(constraints)}",
+                "debug executor produced candidate root-cause scan",
+                "next step: verify logs / config / runtime state against suspected areas"
+            ]
+        },
+        "issues": [],
+        "next_action_suggestion": "由大蝦決定是否再派具體 command-based debug task。"
+    }
+
+
+def build_coding_result(task, task_path: Path):
+    now = datetime.now().isoformat()
+    inputs = task.get("inputs", {})
+    target_file = inputs.get("target_file") if isinstance(inputs, dict) else None
+    notes = [
+        f"generated_at={now}",
+        f"target_file={target_file or 'n/a'}",
+        "coding executor completed planning-level implementation stub",
+        "recommended next step: attach concrete file scope or spawn dedicated coding sub-agent"
+    ]
+    status = "partial"
+    issues = ["目前 coding executor 只做到 implementation planning，未直接修改業務檔案"]
+    if target_file:
+        notes.append("task includes target_file, ready for next-phase concrete edit flow")
+    return {
+        "task_id": task["task_id"],
+        "status": status,
+        "summary": f"已完成 coding task 初步處理：{task.get('title', task['task_id'])}",
+        "result": {
+            "artifacts": [
+                str(task_path.relative_to(ROOT))
+            ],
+            "notes": notes
+        },
+        "issues": issues,
+        "next_action_suggestion": "由大蝦補檔案範圍與 acceptance criteria，或改派真正 coding agent。"
+    }
+
+
 def build_placeholder_result(task, task_path: Path):
     task = normalize_task(task)
     task_type = task.get("task_type", "analysis")
@@ -104,6 +161,10 @@ def build_placeholder_result(task, task_path: Path):
         return build_analysis_result(task, task_path)
     if task_type == "sop":
         return build_sop_result(task, task_path)
+    if task_type == "debug":
+        return build_debug_result(task, task_path)
+    if task_type == "coding":
+        return build_coding_result(task, task_path)
 
     now = datetime.now().isoformat()
     return {
