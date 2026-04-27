@@ -45,6 +45,8 @@ def result_envelope(task, status, summary, artifacts, notes, issues, next_action
         "task_id": task["task_id"],
         "completed_by": "小蝦",
         "executor_role": "RD",
+        "reviewed_by": "大蝦",
+        "reported_by": "大蝦",
         "status": status,
         "summary": summary,
         "result": {
