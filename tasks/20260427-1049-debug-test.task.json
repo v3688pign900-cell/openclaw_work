@@ -1,0 +1,31 @@
+{
+  "task_id": "task-20260427-1049-debug-test",
+  "from": "大蝦",
+  "to": "小蝦",
+  "role": "execution",
+  "task_type": "debug",
+  "title": "分析 watcher pull 失敗原因",
+  "goal": "找出 rd_runner watch mode 在 pull 前可能失敗的主因，並給出下一步 debug focus。",
+  "background": "先前出現 pull --rebase 因 unstaged changes 失敗。",
+  "inputs": {
+    "symptom": "cannot pull with rebase: You have unstaged changes",
+    "component": "rd_runner.py",
+    "repo": "openclaw_work"
+  },
+  "constraints": [
+    "先做初步分析",
+    "不要直接改使用者其他專案"
+  ],
+  "expected_output": {
+    "format": "json",
+    "sections": ["summary", "result", "issues"]
+  },
+  "acceptance_criteria": [
+    "status=completed",
+    "notes 有 suspected area",
+    "能讓大蝦決定下一步"
+  ],
+  "priority": "medium",
+  "deadline_hint": "immediate",
+  "assumptions_allowed": true
+}
