@@ -162,6 +162,25 @@ def apply_coding_change(target_path: Path, inputs):
     return False, "unsupported_edit_mode", content
 
 
+def build_port_check_script(target_path: Path, port: int):
+    content = f'''#!/usr/bin/env bash
+set -euo pipefail
+
+PORT="{port}"
+
+if lsof -nP -iTCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+  echo "LISTEN: tcp port $PORT"
+  exit 0
+else
+  echo "NOT LISTEN: tcp port $PORT"
+  exit 1
+fi
+'''
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    target_path.write_text(content)
+    target_path.chmod(0o755)
+
+
 def build_coding_result(task, task_path: Path):
     now = datetime.now().isoformat()
     inputs = task.get("inputs", {}) if isinstance(task.get("inputs", {}), dict) else {}
@@ -171,6 +190,43 @@ def build_coding_result(task, task_path: Path):
         f"generated_at={now}",
         f"target_file={target_file or 'n/a'}",
     ]
+
+    if inputs.get("script_type") == "port_listen_check":
+        if resolve_error:
+            return {
+                "task_id": task["task_id"],
+                "status": "missing_info" if resolve_error == "missing_target_file" else "blocked",
+                "summary": f"coding task 無法執行：{task.get('title', task['task_id'])}",
+                "result": {
+                    "artifacts": [str(task_path.relative_to(ROOT))],
+                    "notes": [*notes, f"resolve_error={resolve_error}"],
+                    "executor_signature": "RD-xiaoxia"
+                },
+                "issues": [resolve_error],
+                "next_action_suggestion": "補 target_file 或確認檔案位置限制。"
+            }
+        port = inputs.get("target_port", 18789)
+        build_port_check_script(target_path, port)
+        return {
+            "task_id": task["task_id"],
+            "status": "completed",
+            "summary": f"已完成 coding task：{task.get('title', task['task_id'])}",
+            "result": {
+                "artifacts": [
+                    str(task_path.relative_to(ROOT)),
+                    str(target_path.relative_to(ROOT))
+                ],
+                "notes": [
+                    *notes,
+                    f"script_type=port_listen_check",
+                    f"target_port={port}",
+                    "coding executor generated bash script successfully"
+                ],
+                "executor_signature": "RD-xiaoxia"
+            },
+            "issues": [],
+            "next_action_suggestion": "由大蝦驗收 script 與 exit code 行為。"
+        }
 
     if resolve_error:
         return {
@@ -215,7 +271,8 @@ def build_coding_result(task, task_path: Path):
                 str(task_path.relative_to(ROOT)),
                 str(target_path.relative_to(ROOT))
             ],
-            "notes": notes
+            "notes": notes,
+            "executor_signature": "RD-xiaoxia"
         },
         "issues": [],
         "next_action_suggestion": "由大蝦檢查 diff 後決定是否直接回 CEO。"
