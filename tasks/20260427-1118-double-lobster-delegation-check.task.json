@@ -1,0 +1,42 @@
+{
+  "task_id": "task-20260427-1118-double-lobster-delegation-check",
+  "from": "大蝦",
+  "to": "小蝦",
+  "role": "execution",
+  "task_type": "coding",
+  "title": "寫一個 bash script 檢查 18789 port 是否有 listen",
+  "goal": "產出可執行 bash script，用於檢查本機 TCP 18789 port 是否處於 listen 狀態，並回傳適當 exit code。",
+  "background": "驗證雙龍蝦 delegation 流程：大蝦派工、小蝦執行、大蝦驗收。",
+  "inputs": {
+    "target_file": "deliverables/check_port_18789.sh",
+    "script_type": "port_listen_check",
+    "target_port": 18789
+  },
+  "constraints": [
+    "必須由 RD 執行，不可由 AM 直接完成",
+    "使用 bash script",
+    "避免不必要依賴，優先使用 macOS 常見內建指令",
+    "result JSON 必須包含 executor_signature=RD-xiaoxia",
+    "若有建立檔案，需提供檔案路徑"
+  ],
+  "expected_output": {
+    "format": "json",
+    "sections": [
+      "task_id",
+      "status",
+      "summary",
+      "result",
+      "issues"
+    ]
+  },
+  "acceptance_criteria": [
+    "bash script 已建立",
+    "script 能檢查 18789 port 是否 listen",
+    "script 在 listen / not-listen 情況下有清楚輸出",
+    "script 有合理 exit code",
+    "result JSON 包含 executor_signature=RD-xiaoxia"
+  ],
+  "priority": "high",
+  "deadline_hint": "immediate",
+  "assumptions_allowed": true
+}
