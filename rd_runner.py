@@ -39,9 +39,72 @@ def normalize_task(task):
     return normalized
 
 
+def build_analysis_result(task, task_path: Path):
+    now = datetime.now().isoformat()
+    goal = task.get("goal", "")
+    constraints = task.get("constraints", [])
+    inputs = task.get("inputs", {})
+    notes = [
+        f"goal={goal}",
+        f"generated_at={now}",
+        f"input_keys={','.join(inputs.keys()) if isinstance(inputs, dict) else 'n/a'}",
+        f"constraint_count={len(constraints)}",
+        "analysis executor completed local structured review",
+    ]
+    return {
+        "task_id": task["task_id"],
+        "status": "completed",
+        "summary": f"已完成 analysis task：{task.get('title', task['task_id'])}",
+        "result": {
+            "artifacts": [
+                str(task_path.relative_to(ROOT))
+            ],
+            "notes": notes
+        },
+        "issues": [],
+        "next_action_suggestion": "由大蝦確認是否需要再拆成 coding / debug 子任務。"
+    }
+
+
+def build_sop_result(task, task_path: Path):
+    now = datetime.now().isoformat()
+    goal = task.get("goal", "")
+    constraints = task.get("constraints", [])
+    inputs = task.get("inputs", {})
+    steps = [
+        f"1. 確認目標：{goal}",
+        f"2. 檢查輸入：{json.dumps(inputs, ensure_ascii=False)}",
+        f"3. 套用限制：{'; '.join(constraints) if constraints else 'none'}",
+        "4. 依照 task title 執行對應 SOP",
+        "5. 回傳 command / steps / result 給大蝦驗收"
+    ]
+    return {
+        "task_id": task["task_id"],
+        "status": "completed",
+        "summary": f"已產出 SOP task：{task.get('title', task['task_id'])}",
+        "result": {
+            "artifacts": [
+                str(task_path.relative_to(ROOT))
+            ],
+            "notes": [
+                f"generated_at={now}",
+                "sop executor produced structured steps",
+                *steps
+            ]
+        },
+        "issues": [],
+        "next_action_suggestion": "由大蝦決定是否直接回 CEO，或再補 one-liner command。"
+    }
+
+
 def build_placeholder_result(task, task_path: Path):
     task = normalize_task(task)
     task_type = task.get("task_type", "analysis")
+    if task_type == "analysis":
+        return build_analysis_result(task, task_path)
+    if task_type == "sop":
+        return build_sop_result(task, task_path)
+
     now = datetime.now().isoformat()
     return {
         "task_id": task["task_id"],
