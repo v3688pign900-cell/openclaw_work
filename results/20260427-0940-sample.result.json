@@ -1,0 +1,19 @@
+{
+  "task_id": "task-20260427-0940-sample",
+  "status": "completed",
+  "summary": "sample result，驗證 tasks/results 命名與欄位規格可用。",
+  "result": {
+    "artifacts": [
+      "tasks/20260427-0940-sample.task.json",
+      "results/20260427-0940-sample.result.json",
+      "GITHUB_TASKS_RESULTS_SPEC.md"
+    ],
+    "notes": [
+      "slug 一致",
+      "task_id 可回指",
+      "schema 可供後續自動化使用"
+    ]
+  },
+  "issues": [],
+  "next_action_suggestion": "下一步可把 coordinator.py 接到這個規格上。"
+}
