@@ -68,11 +68,14 @@ example:
 ```json
 {
   "task_id": "",
+  "completed_by": "小蝦",
+  "executor_role": "RD",
   "status": "completed | partial | failed | missing_info | blocked",
   "summary": "",
   "result": {
     "artifacts": [],
-    "notes": []
+    "notes": [],
+    "executor_signature": "RD-xiaoxia"
   },
   "issues": [],
   "next_action_suggestion": ""
@@ -92,6 +95,8 @@ example:
 
 - 只吃 `tasks/*.task.json`
 - 只吐 `results/*.result.json`
+- result 必須標明 `completed_by` / `executor_role`
+- result `result.executor_signature` 必須存在
 - 不直接對 CEO 回覆
 - 不做策略決策
 - 有 blocker 就用 `blocked` 或 `missing_info`

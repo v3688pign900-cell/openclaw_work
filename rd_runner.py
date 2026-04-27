@@ -40,6 +40,23 @@ def normalize_task(task):
     return normalized
 
 
+def result_envelope(task, status, summary, artifacts, notes, issues, next_action_suggestion, executor_signature="RD-xiaoxia"):
+    return {
+        "task_id": task["task_id"],
+        "completed_by": "小蝦",
+        "executor_role": "RD",
+        "status": status,
+        "summary": summary,
+        "result": {
+            "artifacts": artifacts,
+            "notes": notes,
+            "executor_signature": executor_signature
+        },
+        "issues": issues,
+        "next_action_suggestion": next_action_suggestion
+    }
+
+
 def build_analysis_result(task, task_path: Path):
     now = datetime.now().isoformat()
     goal = task.get("goal", "")
@@ -52,19 +69,15 @@ def build_analysis_result(task, task_path: Path):
         f"constraint_count={len(constraints)}",
         "analysis executor completed local structured review",
     ]
-    return {
-        "task_id": task["task_id"],
-        "status": "completed",
-        "summary": f"已完成 analysis task：{task.get('title', task['task_id'])}",
-        "result": {
-            "artifacts": [
-                str(task_path.relative_to(ROOT))
-            ],
-            "notes": notes
-        },
-        "issues": [],
-        "next_action_suggestion": "由大蝦確認是否需要再拆成 coding / debug 子任務。"
-    }
+    return result_envelope(
+        task,
+        "completed",
+        f"已完成 analysis task：{task.get('title', task['task_id'])}",
+        [str(task_path.relative_to(ROOT))],
+        notes,
+        [],
+        "由大蝦確認是否需要再拆成 coding / debug 子任務。"
+    )
 
 
 def build_sop_result(task, task_path: Path):
@@ -79,23 +92,15 @@ def build_sop_result(task, task_path: Path):
         "4. 依照 task title 執行對應 SOP",
         "5. 回傳 command / steps / result 給大蝦驗收"
     ]
-    return {
-        "task_id": task["task_id"],
-        "status": "completed",
-        "summary": f"已產出 SOP task：{task.get('title', task['task_id'])}",
-        "result": {
-            "artifacts": [
-                str(task_path.relative_to(ROOT))
-            ],
-            "notes": [
-                f"generated_at={now}",
-                "sop executor produced structured steps",
-                *steps
-            ]
-        },
-        "issues": [],
-        "next_action_suggestion": "由大蝦決定是否直接回 CEO，或再補 one-liner command。"
-    }
+    return result_envelope(
+        task,
+        "completed",
+        f"已產出 SOP task：{task.get('title', task['task_id'])}",
+        [str(task_path.relative_to(ROOT))],
+        [f"generated_at={now}", "sop executor produced structured steps", *steps],
+        [],
+        "由大蝦決定是否直接回 CEO，或再補 one-liner command。"
+    )
 
 
 def build_debug_result(task, task_path: Path):
@@ -105,25 +110,21 @@ def build_debug_result(task, task_path: Path):
     suspected_areas = []
     if isinstance(inputs, dict):
         suspected_areas = list(inputs.keys())
-    return {
-        "task_id": task["task_id"],
-        "status": "completed",
-        "summary": f"已完成 debug 初步分析：{task.get('title', task['task_id'])}",
-        "result": {
-            "artifacts": [
-                str(task_path.relative_to(ROOT))
-            ],
-            "notes": [
-                f"generated_at={now}",
-                f"suspected_areas={','.join(suspected_areas) if suspected_areas else 'n/a'}",
-                f"constraint_count={len(constraints)}",
-                "debug executor produced candidate root-cause scan",
-                "next step: verify logs / config / runtime state against suspected areas"
-            ]
-        },
-        "issues": [],
-        "next_action_suggestion": "由大蝦決定是否再派具體 command-based debug task。"
-    }
+    return result_envelope(
+        task,
+        "completed",
+        f"已完成 debug 初步分析：{task.get('title', task['task_id'])}",
+        [str(task_path.relative_to(ROOT))],
+        [
+            f"generated_at={now}",
+            f"suspected_areas={','.join(suspected_areas) if suspected_areas else 'n/a'}",
+            f"constraint_count={len(constraints)}",
+            "debug executor produced candidate root-cause scan",
+            "next step: verify logs / config / runtime state against suspected areas"
+        ],
+        [],
+        "由大蝦決定是否再派具體 command-based debug task。"
+    )
 
 
 def resolve_target_file(target_file):
@@ -193,90 +194,63 @@ def build_coding_result(task, task_path: Path):
 
     if inputs.get("script_type") == "port_listen_check":
         if resolve_error:
-            return {
-                "task_id": task["task_id"],
-                "status": "missing_info" if resolve_error == "missing_target_file" else "blocked",
-                "summary": f"coding task 無法執行：{task.get('title', task['task_id'])}",
-                "result": {
-                    "artifacts": [str(task_path.relative_to(ROOT))],
-                    "notes": [*notes, f"resolve_error={resolve_error}"],
-                    "executor_signature": "RD-xiaoxia"
-                },
-                "issues": [resolve_error],
-                "next_action_suggestion": "補 target_file 或確認檔案位置限制。"
-            }
+            return result_envelope(
+                task,
+                "missing_info" if resolve_error == "missing_target_file" else "blocked",
+                f"coding task 無法執行：{task.get('title', task['task_id'])}",
+                [str(task_path.relative_to(ROOT))],
+                [*notes, f"resolve_error={resolve_error}"],
+                [resolve_error],
+                "補 target_file 或確認檔案位置限制。"
+            )
         port = inputs.get("target_port", 18789)
         build_port_check_script(target_path, port)
-        return {
-            "task_id": task["task_id"],
-            "status": "completed",
-            "summary": f"已完成 coding task：{task.get('title', task['task_id'])}",
-            "result": {
-                "artifacts": [
-                    str(task_path.relative_to(ROOT)),
-                    str(target_path.relative_to(ROOT))
-                ],
-                "notes": [
-                    *notes,
-                    f"script_type=port_listen_check",
-                    f"target_port={port}",
-                    "coding executor generated bash script successfully"
-                ],
-                "executor_signature": "RD-xiaoxia"
-            },
-            "issues": [],
-            "next_action_suggestion": "由大蝦驗收 script 與 exit code 行為。"
-        }
+        return result_envelope(
+            task,
+            "completed",
+            f"已完成 coding task：{task.get('title', task['task_id'])}",
+            [str(task_path.relative_to(ROOT)), str(target_path.relative_to(ROOT))],
+            [*notes, f"script_type=port_listen_check", f"target_port={port}", "coding executor generated bash script successfully"],
+            [],
+            "由大蝦驗收 script 與 exit code 行為。"
+        )
 
     if resolve_error:
-        return {
-            "task_id": task["task_id"],
-            "status": "missing_info" if resolve_error == "missing_target_file" else "blocked",
-            "summary": f"coding task 無法執行：{task.get('title', task['task_id'])}",
-            "result": {
-                "artifacts": [str(task_path.relative_to(ROOT))],
-                "notes": [*notes, f"resolve_error={resolve_error}"]
-            },
-            "issues": [resolve_error],
-            "next_action_suggestion": "補 target_file 或確認檔案位置限制。"
-        }
+        return result_envelope(
+            task,
+            "missing_info" if resolve_error == "missing_target_file" else "blocked",
+            f"coding task 無法執行：{task.get('title', task['task_id'])}",
+            [str(task_path.relative_to(ROOT))],
+            [*notes, f"resolve_error={resolve_error}"],
+            [resolve_error],
+            "補 target_file 或確認檔案位置限制。"
+        )
 
     ok, action, _ = apply_coding_change(target_path, inputs)
     if not ok:
-        return {
-            "task_id": task["task_id"],
-            "status": "failed",
-            "summary": f"coding task 執行失敗：{task.get('title', task['task_id'])}",
-            "result": {
-                "artifacts": [
-                    str(task_path.relative_to(ROOT)),
-                    str(target_path.relative_to(ROOT)) if target_path.exists() else str(target_path)
-                ],
-                "notes": [*notes, f"edit_action={action}"]
-            },
-            "issues": [action],
-            "next_action_suggestion": "檢查 edit_mode / old_text / append_text 是否完整。"
-        }
+        return result_envelope(
+            task,
+            "failed",
+            f"coding task 執行失敗：{task.get('title', task['task_id'])}",
+            [str(task_path.relative_to(ROOT)), str(target_path.relative_to(ROOT)) if target_path.exists() else str(target_path)],
+            [*notes, f"edit_action={action}"],
+            [action],
+            "檢查 edit_mode / old_text / append_text 是否完整。"
+        )
 
     notes.extend([
         f"edit_action={action}",
         "coding executor modified target file successfully",
     ])
-    return {
-        "task_id": task["task_id"],
-        "status": "completed",
-        "summary": f"已完成 coding task：{task.get('title', task['task_id'])}",
-        "result": {
-            "artifacts": [
-                str(task_path.relative_to(ROOT)),
-                str(target_path.relative_to(ROOT))
-            ],
-            "notes": notes,
-            "executor_signature": "RD-xiaoxia"
-        },
-        "issues": [],
-        "next_action_suggestion": "由大蝦檢查 diff 後決定是否直接回 CEO。"
-    }
+    return result_envelope(
+        task,
+        "completed",
+        f"已完成 coding task：{task.get('title', task['task_id'])}",
+        [str(task_path.relative_to(ROOT)), str(target_path.relative_to(ROOT))],
+        notes,
+        [],
+        "由大蝦檢查 diff 後決定是否直接回 CEO。"
+    )
 
 
 def build_placeholder_result(task, task_path: Path):
