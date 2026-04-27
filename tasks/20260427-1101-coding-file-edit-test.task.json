@@ -1,0 +1,32 @@
+{
+  "task_id": "task-20260427-1101-coding-file-edit-test",
+  "from": "大蝦",
+  "to": "小蝦",
+  "role": "execution",
+  "task_type": "coding",
+  "title": "在 README 增加 RD watcher 啟動說明",
+  "goal": "直接修改 README.md，補一段最小 watcher 啟動說明。",
+  "background": "驗證 coding executor 已支援 repo 內 file-edit mode。",
+  "inputs": {
+    "target_file": "README.md",
+    "edit_mode": "append",
+    "append_text": "\n\n## RD Watcher\n\nRun:\n\n```bash\n./scripts/run_local_rd_watch.sh\n```\n"
+  },
+  "constraints": [
+    "只能改 repo 內檔案",
+    "變更要小",
+    "不要改壞既有內容"
+  ],
+  "expected_output": {
+    "format": "json",
+    "sections": ["summary", "result", "issues"]
+  },
+  "acceptance_criteria": [
+    "status=completed",
+    "README.md 真的被修改",
+    "result.artifacts 包含 README.md"
+  ],
+  "priority": "medium",
+  "deadline_hint": "immediate",
+  "assumptions_allowed": true
+}
