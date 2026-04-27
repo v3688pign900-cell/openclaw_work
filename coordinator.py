@@ -114,6 +114,28 @@ def run_git(*args):
     return subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
 
 
+def run_reporter(result_path: Path):
+    reporter = ROOT / "am_reporter.py"
+    if not reporter.exists():
+        return {"ok": False, "reason": "reporter_missing"}
+
+    res = subprocess.run(
+        [sys.executable, str(reporter), str(result_path)],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    if res.returncode != 0:
+        return {"ok": False, "reason": "report_failed", "stderr": res.stderr.strip()}
+    report_path = ROOT / "reports" / f"{result_path.stem}.report.txt"
+    return {
+        "ok": True,
+        "reason": "report_generated",
+        "report_file": str(report_path.relative_to(ROOT)) if report_path.exists() else None,
+        "stdout": res.stdout.strip(),
+    }
+
+
 def git_remote_exists():
     res = run_git("config", "--get", "remote.origin.url")
     return res.returncode == 0 and bool(res.stdout.strip())
@@ -185,11 +207,17 @@ def handle_submit_result(task_path: Path, result_path: Path):
     log_path = LOG_DIR / f"{task['task_id']}.json"
     save_json(log_path, asdict(log))
 
+    report = run_reporter(result_path)
+
+    paths_to_sync = [
+        str(result_path.relative_to(ROOT)),
+        str(log_path.relative_to(ROOT))
+    ]
+    if report.get("ok") and report.get("report_file"):
+        paths_to_sync.append(report["report_file"])
+
     sync = git_commit_and_push(
-        [
-            str(result_path.relative_to(ROOT)),
-            str(log_path.relative_to(ROOT))
-        ],
+        paths_to_sync,
         f"result: {task['task_id']} [{log.status}]"
     )
 
@@ -198,6 +226,7 @@ def handle_submit_result(task_path: Path, result_path: Path):
         "status": log.status,
         "log_file": str(log_path.relative_to(ROOT)),
         "artifacts": log.artifacts,
+        "report": report,
         "git_sync": sync,
     }
     print(json.dumps(output, ensure_ascii=False, indent=2))
