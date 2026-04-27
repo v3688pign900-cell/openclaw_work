@@ -1,0 +1,38 @@
+{
+  "task_id": "task-20260425-port-18789-listen-check",
+  "from": "AM-大蝦",
+  "to": "RD-小蝦",
+  "type": "execution",
+  "task": "寫一個 bash script 檢查 18789 port 是否 listen",
+  "goal": "產出可執行 bash script，用於檢查本機 TCP 18789 port 是否處於 listen 狀態，並回傳適當 exit code。",
+  "input": {
+    "workspace": "/Users/v3688pign900/.openclaw/workspace",
+    "target_port": 18789
+  },
+  "constraints": [
+    "必須由 RD 執行，不可由 AM 直接完成",
+    "使用 bash script",
+    "避免不必要依賴，優先使用 macOS 常見內建指令",
+    "輸出 result JSON，且必須包含 executor_signature=RD-xiaoxia",
+    "若有建立檔案，需提供檔案路徑"
+  ],
+  "expected_output": {
+    "result_format": "json",
+    "fields": [
+      "task_id",
+      "status",
+      "summary",
+      "artifacts",
+      "command",
+      "steps",
+      "executor_signature"
+    ]
+  },
+  "acceptance_criteria": [
+    "bash script 已建立",
+    "script 能檢查 18789 port 是否 listen",
+    "script 在 listen / not-listen 情況下有清楚輸出",
+    "script 有合理 exit code",
+    "result JSON 包含 executor_signature=RD-xiaoxia"
+  ]
+}

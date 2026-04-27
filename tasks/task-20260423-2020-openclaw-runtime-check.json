@@ -1,0 +1,38 @@
+{
+  "task_id": "task-20260423-2020-openclaw-runtime-check",
+  "from": "大蝦",
+  "to": "小蝦",
+  "role": "execution",
+  "task_type": "sop",
+  "title": "撰寫 bash script 檢查 openclaw service、gateway port、log path",
+  "goal": "產出一個可直接執行的 bash script，用來檢查 openclaw process/status、gateway 監聽 port，以及常見 log path 是否存在。",
+  "background": "CEO 要求走完整 AM → RD → QA 流程。大蝦先產出 task JSON，再由小蝦回 code artifact，最後由大蝦整理交付。",
+  "inputs": {
+    "target_file": "deliverables/check_openclaw_runtime.sh",
+    "target_readme": "deliverables/check_openclaw_runtime.README.md",
+    "checks": [
+      "openclaw service/process",
+      "gateway port",
+      "log path"
+    ],
+    "default_gateway_port": 18789
+  },
+  "constraints": [
+    "使用 bash",
+    "script 需可直接執行",
+    "若 openclaw command 不存在要回明確錯誤",
+    "輸出要短且可讀",
+    "不要加入多餘理論"
+  ],
+  "expected_output": {
+    "format": "json",
+    "sections": [
+      "artifact_paths",
+      "commands_used",
+      "verification_result"
+    ]
+  },
+  "priority": "high",
+  "deadline_hint": "immediate",
+  "assumptions_allowed": true
+}
