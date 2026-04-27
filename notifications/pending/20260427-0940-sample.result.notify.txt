@@ -1,0 +1,10 @@
+結論：sample result，驗證 tasks/results 命名與欄位規格可用。
+Status：completed
+執行：unknown
+驗收/回報：大蝦
+task_id：task-20260427-0940-sample
+Artifacts：
+- tasks/20260427-0940-sample.task.json
+- results/20260427-0940-sample.result.json
+- GITHUB_TASKS_RESULTS_SPEC.md
+Issues：none

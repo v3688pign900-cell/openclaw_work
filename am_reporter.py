@@ -6,7 +6,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 RESULTS_DIR = ROOT / "results"
 REPORTS_DIR = ROOT / "reports"
+NOTIFY_PENDING_DIR = ROOT / "notifications" / "pending"
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+NOTIFY_PENDING_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def load_json(path: Path):
@@ -58,7 +60,9 @@ def main():
     result = load_json(result_path)
     report = build_report(result)
     out_path = REPORTS_DIR / (result_path.stem + ".report.txt")
+    notify_path = NOTIFY_PENDING_DIR / (result_path.stem + ".notify.txt")
     save_text(out_path, report)
+    save_text(notify_path, report)
     print(report)
 
 

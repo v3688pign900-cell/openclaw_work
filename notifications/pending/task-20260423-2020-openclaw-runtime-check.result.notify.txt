@@ -1,0 +1,9 @@
+結論：已產出可執行 bash script，用於檢查 openclaw service/process、gateway port、log path，並附 README。
+Status：completed
+執行：unknown
+驗收/回報：大蝦
+task_id：task-20260423-2020-openclaw-runtime-check
+Artifacts：
+- deliverables/check_openclaw_runtime.sh
+- deliverables/check_openclaw_runtime.README.md
+Issues：none
