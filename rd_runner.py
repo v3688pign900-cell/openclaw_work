@@ -7,6 +7,7 @@ from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
+ALLOWED_WRITE_ROOT = ROOT
 TASKS_DIR = ROOT / "tasks"
 RESULTS_DIR = ROOT / "results"
 
@@ -125,32 +126,99 @@ def build_debug_result(task, task_path: Path):
     }
 
 
+def resolve_target_file(target_file):
+    if not target_file:
+        return None, "missing_target_file"
+    path = (ROOT / target_file).resolve() if not Path(target_file).is_absolute() else Path(target_file).resolve()
+    try:
+        path.relative_to(ALLOWED_WRITE_ROOT)
+    except ValueError:
+        return None, "target_outside_repo"
+    return path, None
+
+
+def apply_coding_change(target_path: Path, inputs):
+    mode = inputs.get("edit_mode", "append")
+    content = target_path.read_text() if target_path.exists() else ""
+
+    if mode == "append":
+        append_text = inputs.get("append_text", "")
+        if not append_text:
+            return False, "missing_append_text", content
+        new_content = content + ("" if content.endswith("\n") or content == "" else "\n") + append_text
+        target_path.write_text(new_content)
+        return True, "appended", new_content
+
+    if mode == "replace":
+        old_text = inputs.get("old_text")
+        new_text = inputs.get("new_text", "")
+        if old_text is None:
+            return False, "missing_old_text", content
+        if old_text not in content:
+            return False, "old_text_not_found", content
+        target_path.write_text(content.replace(old_text, new_text, 1))
+        return True, "replaced", target_path.read_text()
+
+    return False, "unsupported_edit_mode", content
+
+
 def build_coding_result(task, task_path: Path):
     now = datetime.now().isoformat()
-    inputs = task.get("inputs", {})
-    target_file = inputs.get("target_file") if isinstance(inputs, dict) else None
+    inputs = task.get("inputs", {}) if isinstance(task.get("inputs", {}), dict) else {}
+    target_file = inputs.get("target_file")
+    target_path, resolve_error = resolve_target_file(target_file)
     notes = [
         f"generated_at={now}",
         f"target_file={target_file or 'n/a'}",
-        "coding executor completed planning-level implementation stub",
-        "recommended next step: attach concrete file scope or spawn dedicated coding sub-agent"
     ]
-    status = "partial"
-    issues = ["目前 coding executor 只做到 implementation planning，未直接修改業務檔案"]
-    if target_file:
-        notes.append("task includes target_file, ready for next-phase concrete edit flow")
+
+    if resolve_error:
+        return {
+            "task_id": task["task_id"],
+            "status": "missing_info" if resolve_error == "missing_target_file" else "blocked",
+            "summary": f"coding task 無法執行：{task.get('title', task['task_id'])}",
+            "result": {
+                "artifacts": [str(task_path.relative_to(ROOT))],
+                "notes": [*notes, f"resolve_error={resolve_error}"]
+            },
+            "issues": [resolve_error],
+            "next_action_suggestion": "補 target_file 或確認檔案位置限制。"
+        }
+
+    ok, action, _ = apply_coding_change(target_path, inputs)
+    if not ok:
+        return {
+            "task_id": task["task_id"],
+            "status": "failed",
+            "summary": f"coding task 執行失敗：{task.get('title', task['task_id'])}",
+            "result": {
+                "artifacts": [
+                    str(task_path.relative_to(ROOT)),
+                    str(target_path.relative_to(ROOT)) if target_path.exists() else str(target_path)
+                ],
+                "notes": [*notes, f"edit_action={action}"]
+            },
+            "issues": [action],
+            "next_action_suggestion": "檢查 edit_mode / old_text / append_text 是否完整。"
+        }
+
+    notes.extend([
+        f"edit_action={action}",
+        "coding executor modified target file successfully",
+    ])
     return {
         "task_id": task["task_id"],
-        "status": status,
-        "summary": f"已完成 coding task 初步處理：{task.get('title', task['task_id'])}",
+        "status": "completed",
+        "summary": f"已完成 coding task：{task.get('title', task['task_id'])}",
         "result": {
             "artifacts": [
-                str(task_path.relative_to(ROOT))
+                str(task_path.relative_to(ROOT)),
+                str(target_path.relative_to(ROOT))
             ],
             "notes": notes
         },
-        "issues": issues,
-        "next_action_suggestion": "由大蝦補檔案範圍與 acceptance criteria，或改派真正 coding agent。"
+        "issues": [],
+        "next_action_suggestion": "由大蝦檢查 diff 後決定是否直接回 CEO。"
     }
 
 
