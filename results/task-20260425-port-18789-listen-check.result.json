@@ -1,0 +1,20 @@
+{
+  "task_id": "task-20260425-port-18789-listen-check",
+  "status": "partial",
+  "summary": "小蝦已收到 task，建立本地 result stub，等待實際執行邏輯接入。 (analysis)",
+  "result": {
+    "artifacts": [
+      "tasks/task-20260425-port-18789-listen-check.json"
+    ],
+    "notes": [
+      "task_type=analysis",
+      "generated_at=2026-04-27T10:14:46.866920",
+      "local runner detected new task",
+      "execution logic not yet specialized"
+    ]
+  },
+  "issues": [
+    "目前是本地 auto-stub flow，尚未接真正執行器"
+  ],
+  "next_action_suggestion": "由大蝦決定是否補 task detail，或接上對應 task_type 的 executor。"
+}
