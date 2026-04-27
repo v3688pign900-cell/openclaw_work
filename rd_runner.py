@@ -2,6 +2,7 @@
 import json
 import subprocess
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -64,6 +65,23 @@ def build_placeholder_result(task, task_path: Path):
     }
 
 
+def run_git(*args):
+    return subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
+
+
+def git_pull():
+    remote = run_git("config", "--get", "remote.origin.url")
+    if remote.returncode != 0 or not remote.stdout.strip():
+        return {"ok": False, "reason": "missing_remote"}
+
+    branch = run_git("branch", "--show-current")
+    current_branch = branch.stdout.strip() or "main"
+    pull = run_git("pull", "--rebase", "origin", current_branch)
+    if pull.returncode != 0:
+        return {"ok": False, "reason": "pull_failed", "stderr": pull.stderr.strip()}
+    return {"ok": True, "reason": "pulled", "stdout": pull.stdout.strip()}
+
+
 def submit_result(task_path: Path, result_path: Path):
     res = subprocess.run(
         [sys.executable, str(ROOT / "coordinator.py"), "submit-result", str(task_path), str(result_path)],
@@ -91,10 +109,31 @@ def process_task(task_path: Path):
     }
 
 
-def main():
+def run_once(pull_first=False):
+    meta = {}
+    if pull_first:
+        meta["git_pull"] = git_pull()
     task_files = sorted(TASKS_DIR.glob("*.json"))
     outputs = [process_task(p) for p in task_files]
-    print(json.dumps(outputs, ensure_ascii=False, indent=2))
+    return {"meta": meta, "results": outputs}
+
+
+def watch_loop(interval_seconds=30, pull_first=True):
+    while True:
+        output = run_once(pull_first=pull_first)
+        print(json.dumps(output, ensure_ascii=False, indent=2), flush=True)
+        time.sleep(interval_seconds)
+
+
+def main():
+    args = sys.argv[1:]
+    if args and args[0] == "watch":
+        interval = int(args[1]) if len(args) > 1 else 30
+        watch_loop(interval_seconds=interval, pull_first=True)
+        return
+
+    output = run_once(pull_first="--pull" in args)
+    print(json.dumps(output, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":

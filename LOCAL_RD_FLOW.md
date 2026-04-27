@@ -8,6 +8,7 @@
 
 - `rd_runner.py`：本地 RD runner
 - `scripts/run_local_rd_once.sh`：one-shot 執行入口
+- `scripts/run_local_rd_watch.sh`：常駐輪詢入口
 - `coordinator.py`：接收 task/result，寫 lifecycle log
 
 ## Current Behavior
@@ -38,8 +39,25 @@ state/coordinator/<task_id>.json
 或：
 
 ```bash
-python3 rd_runner.py
+python3 rd_runner.py --pull
 ```
+
+## Watch Mode
+
+```bash
+./scripts/run_local_rd_watch.sh
+```
+
+或：
+
+```bash
+python3 rd_runner.py watch 30
+```
+
+說明：
+- 每 30 秒掃一次 `tasks/`
+- 每輪先 `git pull --rebase`
+- 再提交新的 `results/`
 
 ## Current Limitation
 
