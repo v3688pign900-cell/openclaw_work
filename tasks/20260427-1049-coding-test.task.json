@@ -1,0 +1,30 @@
+{
+  "task_id": "task-20260427-1049-coding-test",
+  "from": "大蝦",
+  "to": "小蝦",
+  "role": "execution",
+  "task_type": "coding",
+  "title": "規劃 watcher dirty-worktree 保護修補",
+  "goal": "先規劃如何讓 rd_runner 在 pull 前處理 dirty worktree 問題。",
+  "background": "需要驗證 coding executor 已可輸出 implementation planning。",
+  "inputs": {
+    "target_file": "rd_runner.py",
+    "problem": "pull --rebase fails when working tree has unstaged changes"
+  },
+  "constraints": [
+    "先不要直接大改架構",
+    "先做 planning-level output"
+  ],
+  "expected_output": {
+    "format": "json",
+    "sections": ["summary", "result", "issues"]
+  },
+  "acceptance_criteria": [
+    "status=partial 或 completed",
+    "notes 含 target_file",
+    "能銜接下一步 coding"
+  ],
+  "priority": "medium",
+  "deadline_hint": "immediate",
+  "assumptions_allowed": true
+}
