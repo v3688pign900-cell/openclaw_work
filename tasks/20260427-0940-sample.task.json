@@ -1,0 +1,37 @@
+{
+  "task_id": "task-20260427-0940-sample",
+  "from": "大蝦",
+  "to": "小蝦",
+  "role": "execution",
+  "task_type": "analysis",
+  "title": "sample task",
+  "goal": "驗證 GitHub tasks/results 流程可正常運作",
+  "background": "CEO 指示先定義 tasks/ 與 results/ 規格，這是最小可用範例。",
+  "inputs": {
+    "source": "telegram",
+    "target_dirs": [
+      "tasks/",
+      "results/"
+    ]
+  },
+  "constraints": [
+    "只做流程驗證",
+    "不要對外操作"
+  ],
+  "expected_output": {
+    "format": "json",
+    "sections": [
+      "summary",
+      "artifacts",
+      "issues"
+    ]
+  },
+  "acceptance_criteria": [
+    "result JSON schema 正確",
+    "task_id 可正確回指",
+    "能讓大蝦做 QA 驗收"
+  ],
+  "priority": "medium",
+  "deadline_hint": "immediate",
+  "assumptions_allowed": true
+}
